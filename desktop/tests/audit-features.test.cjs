@@ -302,6 +302,8 @@ test("arquivos especiais, regras grandes e lotes de exclusão preservam o invent
   await fs.writeFile(join(root, "requirements.txt"), "fixture==1.0\n");
   if (process.platform !== "win32") {
     await fs.writeFile(join(root, ":(zzz)module.py"), "");
+  }
+  if (process.platform === "linux") {
     await fs.mkdir(Buffer.concat([Buffer.from(root + "/"), Buffer.from([0xff])]));
   }
   for (let start = 0; start < 600; start += 50) {
