@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DepTriagem</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="header-content">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">◈</span><div><strong>DepTriagem</strong><small>Análise local <span id="version"></span></small></div></div>
+    <nav aria-label="Navegação principal">
+      <button class="nav" data-group="analysis">Análise</button>
+      <button class="nav" data-group="launcher">Launcher</button>
+      <button class="nav" data-group="settings">Configurações</button>
+    </nav>
+    <button class="badge available" id="update-badge" data-page="updates" hidden>Nova versão disponível</button>
+  </div>
+</header>
+<main>
+  <section id="operations" aria-label="Progresso das opera&ccedil;&otilde;es" hidden></section>
+  <nav id="analysis-nav" class="subnav" aria-label="Opções de análise">
+    <button class="nav" data-page="projects">Analisar aplicação</button>
+    <button class="nav" data-page="monitor">Monitoramento GitHub</button>
+    <button class="nav" data-page="review">Importar relatório</button>
+    <button class="nav" data-page="triage">Triagem de relatos</button>
+  </nav>
+  <nav id="settings-nav" class="subnav" aria-label="Opções de configuração" hidden>
+    <button class="nav" data-page="settings">Fontes e ferramentas</button>
+    <button class="nav" data-page="preferences">Prefer&ecirc;ncias</button>
+    <button class="nav" data-page="models">Modelos de IA</button>
+    <button class="nav" data-page="mcp">Integrações MCP</button>
+    <button class="nav" data-page="updates">Atualizações</button>
+  </nav>
+
+  <section id="page-projects" class="view">
+    <div class="view-heading"><h1>Analisar aplicação</h1><p>Selecione uma pasta local ou um repositório do GitHub.</p></div>
+    <section class="card">
+      <h2>Origem do projeto</h2>
+      <label class="compact">Tipo de origem<select id="source-kind"><option value="local">Pasta local</option><option value="github">GitHub</option></select></label>
+      <div id="source-local">
+        <div class="field-action"><label>Pasta do projeto<input id="project-folder" spellcheck="false"></label><button data-pick="folder" data-target="project-folder">Selecionar pasta…</button></div>
+        <label class="line">Commit Git local<input id="project-commit" placeholder="Commit, tag ou branch. Se vazio, usa a pasta atual." spellcheck="false"></label>
+      </div>
+      <div id="source-github" hidden>
+        <div class="section-head line"><span id="source-account" class="badge">Conta GitHub ainda não verificada</span><button id="repo-list">Listar repositórios</button></div>
+        <div class="columns">
+          <label>Repositório<input id="project-repo" list="repositories" placeholder="dono/repositório" spellcheck="false"></label>
+          <label>Branch, tag ou commit<input id="project-ref" placeholder="Branch padrão se vazio" spellcheck="false"></label>
+        </div>
+        <datalist id="repositories"></datalist>
+      </div>
+      <div class="actions"><button id="project-to-mcp">Usar este projeto no MCP</button></div>
+    </section>
+    <section class="card">
+      <div class="section-head">
+        <h2>Modelos usados na an&aacute;lise</h2>
+        <button data-page="models">Configurar modelos</button>
+      </div>
+      <label class="check"><input type="checkbox" id="model-guidance" checked>Usar orienta&ccedil;&atilde;o dos modelos</label>
+      <div class="columns model-role-grid project-models">
+        <div>
+          <label>Agente<select id="project-agent-provider"></select></label>
+          <p id="project-agent-model-help" class="muted"></p>
+          <div class="actions"><button id="project-agent-test" title="Testar com dados fictícios">Testar agente</button></div>
+          <p id="project-agent-test-status" class="muted" role="status"></p>
+        </div>
+        <div>
+          <label>Revisor<select id="project-reviewer-provider"></select></label>
+          <p id="project-reviewer-model-help" class="muted"></p>
+          <div class="actions"><button id="project-reviewer-test" title="Testar com dados fictícios">Testar revisor</button></div>
+          <p id="project-reviewer-test-status" class="muted" role="status"></p>
+        </div>
+        <div>
+          <label>Decisor<select id="project-decider-selection">
+            <option value="off">Desativado</option>
+            <option value="launcher">Decisor do Launcher</option>
+            <option value="configured" disabled>Decisor de Configurações</option>
+          </select></label>
+          <p id="project-decider-model-help" class="muted"></p>
+          <div class="actions"><button id="project-decider-test" title="Testar com dados fictícios">Testar decisor</button></div>
+          <p id="project-decider-test-status" class="muted" role="status"></p>
+        </div>
+      </div>
+      <div class="actions end"><label id="external-consent" class="check push" hidden><input type="checkbox" id="allow-external">Autorizar o envio do resumo nesta an&aacute;lise</label><button id="analyze" class="primary">Analisar depend&ecirc;ncias</button></div>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Resultado da análise</h2><div class="actions">
+        <button id="save-project" disabled>Salvar relatório JSON…</button>
+        <button id="export-project" disabled>Exportar relatório completo…</button>
+      </div></div>
+      <p id="project-summary" class="muted">Aguardando análise.</p>
+      <p id="project-decision-result" class="muted" role="status" hidden></p>
+      <pre id="project-result" hidden></pre>
+    </section>
+  </section>
+
+  <section id="page-monitor" class="view" hidden>
+    <div class="view-heading"><h1>Monitoramento GitHub</h1><p>Verifique periodicamente as depend&ecirc;ncias do branch padr&atilde;o dos reposit&oacute;rios selecionados.</p></div>
+    <section class="card">
+      <div class="section-head"><h2>Agendamento</h2><span id="monitor-account" class="badge">Conta GitHub</span></div>
+      <div class="columns">
+        <label>Periodicidade<select id="monitor-period">
+          <option value="hourly">A cada hora</option><option value="daily" selected>Di&aacute;ria</option>
+          <option value="weekly">Semanal</option><option value="monthly">Mensal</option>
+        </select></label>
+        <label>In&iacute;cio (hor&aacute;rio local)<input id="monitor-start" type="datetime-local" required></label>
+      </div>
+      <div class="actions">
+        <label class="check"><input id="monitor-all" type="checkbox">Todos os reposit&oacute;rios acess&iacute;veis pela conta</label>
+        <button id="monitor-load">Listar reposit&oacute;rios</button>
+      </div>
+      <fieldset id="monitor-scope">
+        <legend>Reposit&oacute;rios selecionados</legend>
+        <label>Filtrar pelo nome<input id="monitor-filter" type="search" autocomplete="off"></label>
+        <div id="monitor-repos"></div>
+      </fieldset>
+      <label class="check"><input id="monitor-refresh" type="checkbox" checked>Atualizar catálogos OSV e CISA KEV automaticamente</label>
+      <label class="line">Intervalo de atualização dos catálogos (horas)
+        <input id="monitor-refresh-hours" type="number" min="1" step="1" value="24" required aria-describedby="monitor-refresh-help">
+      </label>
+      <p id="monitor-refresh-help" class="muted">O monitor tenta atualizar as fontes vencidas antes de analisar os repositórios.</p>
+      <div class="actions">
+        <button id="monitor-save" class="primary">Salvar e ativar</button>
+        <button id="monitor-pause" disabled>Pausar</button>
+        <button id="monitor-run" disabled>Executar agora</button>
+      </div>
+      <p id="monitor-next" class="muted" role="status"></p>
+      <p class="muted"><span id="monitor-platform-note">Mantenha o DepTriagem aberto para executar o agendamento.</span></p>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Hist&oacute;rico e alertas</h2><span id="monitor-alert" class="badge" hidden></span></div>
+      <div id="monitor-history"><p class="muted">Nenhuma execu&ccedil;&atilde;o registrada.</p></div>
+    </section>
+  </section>
+
+  <section id="page-review" class="view" hidden>
+    <div class="view-heading"><h1>Importar relatório</h1><p>Cruze os achados do OSV-Scanner com o catálogo CISA KEV.</p></div>
+    <section class="card">
+      <h2>Arquivos de entrada</h2>
+      <div class="field-action"><label>Relatório OSV-Scanner<input id="review-osv" spellcheck="false"></label><button data-pick="report" data-target="review-osv">Selecionar…</button></div>
+      <div class="field-action"><label>Catálogo CISA KEV<input id="review-kev" spellcheck="false"></label><button data-pick="report" data-target="review-kev">Selecionar…</button></div>
+      <div class="actions end"><button id="review" class="primary">Priorizar achados</button><button id="save-review" disabled>Salvar relatório JSON…</button></div>
+    </section>
+    <section class="card"><h2>Achados</h2><p id="review-summary" class="muted">Aguardando o relatório.</p><pre id="review-result" hidden></pre></section>
+  </section>
+
+  <section id="page-triage" class="view" hidden>
+    <div class="view-heading"><h1>Triagem de relatos</h1><p>Escolha um Decisor e obtenha uma sugestão de fila para o relato.</p></div>
+    <section class="card">
+      <div class="section-head"><h2>Decisor usado na triagem</h2><button data-page="models" id="open-decider-settings">Configurar Decisor</button></div>
+      <label>Decisor<select id="triage-decider-selection">
+        <option value="launcher">Decisor do Launcher</option>
+        <option value="configured" disabled>Decisor de Configurações</option>
+      </select></label>
+      <p id="triage-decider-selection-help" class="muted"></p>
+    </section>
+    <section class="card">
+      <label for="report" class="card-label">Relato</label>
+      <textarea id="report" rows="6"></textarea>
+      <label id="triage-external-consent" class="check line" hidden><input type="checkbox" id="triage-allow-external">Autorizar o envio deste relato ao provedor do Decisor</label>
+      <div class="actions end"><label class="check push"><input type="checkbox" id="triage-note">Gerar parecer opcional</label><button id="open-report">Abrir texto…</button><button id="triage" class="primary">Classificar relato</button></div>
+    </section>
+    <section class="card"><h2>Resultado</h2><pre id="triage-result">Aguardando relato.</pre></section>
+  </section>
+
+  <template id="decider-settings-template">
+    <fieldset aria-labelledby="triage-decider-heading">
+      <legend id="triage-decider-heading">Decisor</legend>
+      <label>Origem do Decisor<select id="triage-decider-mode">
+        <option value="launcher">Llama Desktop Launcher</option>
+        <option value="systemone">Servidor SystemOne local</option>
+        <option value="chat">Modelo local via API de chat</option>
+        <option value="opencode-local">OpenCode CLI · servidor local</option>
+        <option value="opencode">OpenCode CLI · provedor integrado</option>
+        <option value="codex">Codex CLI</option>
+        <option value="claude">Claude Code CLI</option>
+        <option value="agy">Antigravity CLI (agy)</option>
+        <option value="openai">ChatGPT / OpenAI API</option>
+        <option value="opencode-zen">OpenCode Zen API</option>
+        <option value="gemini">Gemini API</option>
+      </select></label>
+      <div id="triage-systemone-fields" class="columns line" hidden>
+        <label>Porta do SystemOne<input id="triage-systemone-port" type="number" min="1" max="65535" value="8090"></label>
+      </div>
+      <div id="triage-chat-fields" class="columns line" hidden>
+        <label>Porta da API de chat<input id="triage-chat-port" type="number" min="1" max="65535" value="8080"></label>
+        <label>ID ou alias do modelo<input id="triage-chat-model" spellcheck="false" maxlength="120" placeholder="modelo-local"></label>
+      </div>
+      <div id="triage-opencode-fields" hidden>
+        <label id="triage-opencode-port-field">Porta do servidor local<input id="triage-opencode-port" type="number" min="1" max="65535" value="8080"></label>
+        <div class="field-action">
+          <label>ID do modelo<input id="triage-opencode-model" spellcheck="false" maxlength="120"></label>
+          <button id="triage-opencode-search">Buscar modelos</button>
+        </div>
+        <label id="triage-model-effort-field" hidden>Esforço do modelo<select id="triage-model-effort"></select></label>
+        <div id="triage-key-field" hidden>
+          <label>Chave para esta sessão<input type="password" id="triage-model-key" maxlength="4096" autocomplete="off"></label>
+          <div class="actions"><button id="triage-use-key">Usar chave</button><button id="triage-clear-key">Limpar chave da sessão</button></div>
+        </div>
+      </div>
+      <p id="triage-decider-help" class="muted"></p>
+      <div class="actions">
+        <button id="test-triage-decider">Testar com dados fictícios</button>
+        <button id="save-triage-decider">Salvar Decisor</button>
+      </div>
+      <p id="triage-decider-status" class="muted" role="status"></p>
+    </fieldset>
+  </template>
+
+  <section id="page-launcher" class="view" hidden>
+    <div class="view-heading"><h1>Modelos locais</h1><p>Conecte o DepTriagem aos servidores do Llama Desktop Launcher.</p></div>
+    <section class="card">
+      <div class="section-head"><h2>API de controle</h2><span id="launcher-control-status" class="badge" role="status">N&atilde;o verificada</span></div>
+      <div class="credentials"><label>Porta<input id="control-port" type="number" min="1" max="65535" value="8787"></label><label>Token de controle<input id="control-token" type="password" autocomplete="off" spellcheck="false"></label></div>
+      <div class="actions"><button id="remember-launcher-token" disabled>Guardar token</button><button id="forget-launcher-token" hidden>Remover token salvo</button></div>
+      <div class="actions"><button id="open-launcher">Abrir Launcher</button><button id="connect-launcher" class="primary">Conectar controle</button><button id="quit-launcher" class="danger" disabled>Fechar Launcher</button></div>
+    </section>
+    <div class="columns models">
+      <section class="card">
+        <div class="section-head"><h2>Modelo principal</h2><span class="badge" id="chat-status">Status não verificado</span></div>
+        <label>Modelo<select id="chat-models" disabled></select></label>
+        <div class="actions"><button id="start-chat" class="primary" disabled>Iniciar</button><button id="stop-chat" class="danger" disabled>Parar</button><label class="port push">Porta<input id="chat-port" type="number" min="1" max="65535" value="8080"></label></div>
+        <p id="chat-control-error" data-error="true" role="status" hidden></p>
+      </section>
+      <section class="card">
+        <div class="section-head"><h2>Decisor</h2><span class="badge" id="decider-status">Status não verificado</span></div>
+        <label>Modelo<select id="decider-models" disabled></select></label>
+        <div class="actions"><button id="start-decider" class="primary" disabled>Iniciar</button><button id="stop-decider" class="danger" disabled>Parar</button><label class="port push">Porta<input id="decider-port" type="number" min="1" max="65535" value="8090"></label></div>
+        <p id="decider-control-error" data-error="true" role="status" hidden></p>
+      </section>
+    </div>
+    <section class="card" aria-labelledby="launcher-reviewer-heading">
+      <div class="section-head"><h2 id="launcher-reviewer-heading">Revisor do Launcher</h2><span class="badge" id="reviewer-status" role="status">Status não verificado</span></div>
+      <label>Modelo<select id="reviewer-models" disabled></select></label>
+      <div class="actions"><button id="start-reviewer" class="primary" disabled>Iniciar</button><button id="stop-reviewer" class="danger" disabled>Parar</button></div>
+      <p id="reviewer-control-error" data-error="true" role="status" hidden></p>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Revisor local manual</h2><span class="badge" id="launcher-reviewer-status" role="status">Status não verificado</span></div>
+      <p class="muted">Configure a porta e o modelo de um servidor de chat já iniciado.</p>
+      <div class="columns line">
+        <label>Porta do Revisor<input id="launcher-reviewer-port" type="number" min="1" max="65535" value="8081"></label>
+        <label>ID ou alias do modelo<input id="launcher-reviewer-model" spellcheck="false" maxlength="120"></label>
+      </div>
+      <div class="actions">
+        <button id="launcher-reviewer-search">Buscar modelos</button><button id="launcher-reviewer-test">Testar com dados fictícios</button>
+        <button id="launcher-reviewer-save">Salvar Revisor local</button>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Conexão manual</h2>
+      <div class="columns"><label>Alias do chat<input id="chat-alias" value="modelo-local" spellcheck="false"></label><label>Limite do chat em segundos<input id="chat-timeout" type="number" min="1" max="900" value="180"></label></div>
+      <div class="actions"><button id="verify-launcher">Verificar servidores</button></div>
+    </section>
+  </section>
+
+  <section id="page-models" class="view" hidden>
+    <div class="card">
+      <div class="section-head"><h2>Modelos de IA</h2><button id="jump-decider-settings">Configurar Decisor</button></div>
+      <p class="muted">O agente sugere verifica&ccedil;&otilde;es de cobertura. O revisor faz uma segunda leitura e recebe as sugest&otilde;es validadas do agente.</p>
+      <p class="muted">Servi&ccedil;os externos recebem contagens por linguagem, tipos de lacunas de cobertura e total de achados quando voc&ecirc; autoriza o envio.</p>
+      <div id="model-roles" class="columns model-role-grid"></div>
+      <div class="actions"><button id="save-models" class="primary">Salvar modelos</button></div>
+    </div>
+    <template id="model-role">
+      <fieldset>
+        <legend></legend>
+        <label>Provedor<select data-field="provider">
+          <option value="off">Desativado</option><option value="launcher">Llama Desktop Launcher</option>
+          <option value="openai">ChatGPT / OpenAI API</option><option value="codex">Codex CLI</option>
+          <option value="claude">Claude Code CLI</option><option value="opencode-cli">OpenCode CLI</option>
+          <option value="agy">Antigravity CLI (agy)</option><option value="opencode">OpenCode Zen API</option>
+          <option value="gemini">Gemini API</option>
+        </select></label>
+        <div class="field-action" data-section="model">
+          <label>ID do modelo<input data-field="model" spellcheck="false" maxlength="120"></label>
+          <button data-field="search" hidden>Buscar modelos</button>
+        </div>
+        <label data-section="effort" hidden>Esfor&ccedil;o<select data-field="effort"></select></label>
+        <p data-field="help" class="muted"></p>
+        <div data-section="key" hidden>
+          <label>Chave para esta sess&atilde;o<input data-field="key" type="password" autocomplete="off" maxlength="4096"></label>
+          <div class="actions"><button data-field="apply">Usar chave</button><button data-field="clear">Limpar chave da sess&atilde;o</button></div>
+        </div>
+        <div class="actions"><button data-field="test">Testar com dados fict&iacute;cios</button></div>
+        <p data-field="status" class="muted" role="status"></p>
+      </fieldset>
+    </template>
+  </section>
+
+  <section id="page-mcp" class="view" hidden>
+    <div class="view-heading"><h1>Integrações MCP</h1><p>Permita que um cliente consulte os catálogos ou analise as dependências de um projeto pelo DepTriagem.</p></div>
+    <section class="card" aria-labelledby="mcp-scope-heading">
+      <h2 id="mcp-scope-heading">Cliente e acesso</h2>
+      <div class="columns">
+        <label>Cliente<select id="mcp-client">
+          <option value="codex">Codex</option><option value="claude">Claude Code</option>
+          <option value="opencode">OpenCode 2</option><option value="opencode-v1">OpenCode 1</option>
+          <option value="gemini">Gemini CLI</option><option value="antigravity">Antigravity CLI (agy)</option>
+          <option value="vscode">VS Code</option>
+        </select></label>
+        <label>Acesso<select id="mcp-kind">
+          <option value="catalogs">Somente catálogos OSV e CISA KEV</option>
+          <option value="local">Dependências de uma pasta local</option>
+          <option value="github">Dependências de um repositório do GitHub</option>
+        </select></label>
+      </div>
+      <div id="mcp-local" hidden>
+        <div class="field-action">
+          <label>Pasta autorizada<input id="mcp-folder" spellcheck="false"></label>
+          <button data-pick="folder" data-target="mcp-folder">Selecionar pasta…</button>
+        </div>
+        <label class="line">Commit Git local<input id="mcp-commit" placeholder="Opcional" spellcheck="false"></label>
+      </div>
+      <div id="mcp-github" hidden>
+        <div class="actions"><span id="mcp-account" class="badge">Conta GitHub ainda não verificada</span><button id="mcp-repo-list">Listar repositórios</button></div>
+        <div class="columns">
+          <label>Repositório<input id="mcp-repo" list="repositories" placeholder="dono/repositório" spellcheck="false"></label>
+          <label>Branch, tag ou commit<input id="mcp-ref" placeholder="Branch padrão se vazio" spellcheck="false"></label>
+        </div>
+      </div>
+      <p id="mcp-data-note" class="muted" hidden>Ao analisar, o cliente recebe o resumo e os nomes e versões das dependências com achados.</p>
+      <div class="actions"><button id="mcp-test">Testar servidor local</button></div>
+      <p id="mcp-test-status" role="status" class="muted">Aguardando teste do servidor.</p>
+    </section>
+    <section class="card" aria-labelledby="mcp-config-heading">
+      <div class="section-head"><h2 id="mcp-config-heading">Configuração do cliente</h2><button id="mcp-manual">Manual de integração</button></div>
+      <div id="mcp-workspace-field" class="field-action" hidden>
+        <label>Pasta de trabalho do cliente<input id="mcp-workspace" placeholder="Usa a pasta autorizada quando disponível" spellcheck="false"></label>
+        <button data-pick="folder" data-target="mcp-workspace">Selecionar pasta…</button>
+      </div>
+      <p id="mcp-destination" class="muted"></p>
+      <div class="actions">
+        <button id="mcp-preview">Ver configuração</button>
+        <button id="mcp-copy" class="primary">Copiar configuração</button>
+        <button id="mcp-open-location">Abrir local da configuração</button>
+      </div>
+      <pre id="mcp-snippet" tabindex="0" aria-label="Configuração do servidor DepTriagem" hidden></pre>
+      <p id="mcp-config-status" class="muted" role="status"></p>
+      <p class="muted">Adicione a entrada <code>deptriagem</code> à configuração existente, incluindo o ambiente indicado. Recarregue o cliente antes de verificar a conexão.</p>
+      <div class="actions"><button id="mcp-check-client">Verificar conexão do cliente</button></div>
+      <p id="mcp-client-status" class="muted" role="status"></p>
+    </section>
+  </section>
+
+  <section id="page-preferences" class="view" hidden>
+    <div class="view-heading"><h1>Prefer&ecirc;ncias</h1></div>
+    <section class="card">
+      <div class="section-head">
+        <h2>Apar&ecirc;ncia</h2>
+        <label class="theme"><span aria-hidden="true">&#9680;</span><select id="theme" aria-label="Tema"><option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
+      </div>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Diagn&oacute;stico</h2><button id="copy-diagnostics">Copiar diagn&oacute;stico</button></div>
+      <p class="muted">Inclui as vers&otilde;es e datas dos cat&aacute;logos.</p>
+    </section>
+    <section class="card">
+      <h2>Relat&oacute;rios de an&aacute;lise</h2>
+      <div class="field-action"><label>Pasta padr&atilde;o<input id="reports-path" placeholder="Pasta de relat&oacute;rios do perfil" readonly></label><button data-pick="folder" data-target="reports-path">Selecionar pasta&hellip;</button></div>
+      <div class="actions"><button id="save-preferences" class="primary">Salvar prefer&ecirc;ncias</button><button id="reset-reports">Usar pasta padr&atilde;o do perfil</button></div>
+    </section>
+  </section>
+
+  <section id="page-settings" class="view" hidden>
+    <div class="view-heading"><h1>Fontes e ferramentas</h1><p>Gerencie catálogos, OSV-Scanner e a conta do GitHub.</p></div>
+    <section class="card">
+      <h2>Armazenamento e scanner</h2>
+      <div class="field-action"><label>Pasta dos catálogos<input id="catalog-path" placeholder="Pasta padrão do perfil" spellcheck="false"></label><button data-pick="folder" data-target="catalog-path">Selecionar…</button></div>
+      <div class="field-action"><label>OSV-Scanner<input id="scanner-path" placeholder="Executável gerenciado ou disponível no PATH" spellcheck="false"></label><button data-pick="scanner" data-target="scanner-path">Selecionar…</button></div>
+      <div class="actions"><button id="save-settings" class="primary">Salvar configurações</button><button id="get-scanner">Instalar OSV-Scanner verificado</button><button id="check-scanner">Verificar OSV-Scanner</button></div>
+    </section>
+    <section class="card">
+      <h2>Catálogos de vulnerabilidades</h2>
+      <div class="table-wrap"><table><thead><tr><th scope="col">Fonte</th><th scope="col">Atualização da fonte</th><th scope="col">Cópia local</th><th scope="col">Controle positivo</th></tr></thead><tbody id="catalog-rows"></tbody></table></div>
+      <div class="actions"><button id="sync-all" class="primary">Atualizar OSV e CISA KEV</button><select id="catalog-source" aria-label="Fonte a atualizar"><option value="npm">OSV · npm</option><option value="PyPI">OSV · PyPI</option><option value="NuGet">OSV · NuGet</option><option value="KEV">CISA KEV</option></select><button id="sync-one">Atualizar selecionado</button><button id="reload-catalogs">Recarregar datas</button></div>
+    </section>
+    <section class="card">
+      <div class="section-head"><h2>Conta do GitHub</h2><span class="badge" id="github-account">Conta ainda não verificada</span></div>
+      <div class="actions"><button id="github-login">Conectar conta…</button><button id="github-check">Verificar conta</button></div>
+    </section>
+  </section>
+
+  <section id="page-updates" class="view" hidden>
+    <div class="view-heading"><h1>Atualizações</h1><p>Consulte e instale novas versões do DepTriagem.</p></div>
+    <section class="card">
+      <div class="section-head"><h2>Versão instalada</h2><span id="installed-version" class="badge">—</span></div>
+      <p id="last-update-result" class="muted" role="status" hidden></p>
+      <p id="update-status" class="muted">Nenhuma verificação nesta sessão.</p>
+      <label class="check"><input id="automatic-update" type="checkbox">Verificar ao iniciar e uma vez por dia</label>
+      <div class="actions"><button id="check-update">Verificar agora</button><button id="apply-update" class="primary" disabled>Baixar e instalar</button><button id="release-site">Abrir releases no GitHub</button></div>
+    </section>
+    <section id="update-notes-card" class="card" hidden><h2>Notas da versão</h2><pre id="update-notes"></pre></section>
+  </section>
+</main>
+<footer>
+  <dialog id="model-picker" aria-labelledby="model-picker-title">
+    <h2 id="model-picker-title">Buscar modelos</h2>
+    <progress id="model-picker-progress" aria-label="Consulta ao catálogo de modelos" hidden></progress>
+    <p id="model-picker-status" class="muted" role="status"></p>
+    <div id="model-picker-results" hidden>
+      <label id="model-picker-provider-field" hidden>Provedor<select id="model-picker-provider"></select></label>
+      <label>Filtrar por nome ou ID<input id="model-picker-filter" type="search" autocomplete="off"></label>
+      <label>Modelos encontrados<select id="model-picker-list" size="8"></select></label>
+    </div>
+    <div class="actions end">
+      <button id="model-picker-close">Fechar</button><button id="model-picker-use" class="primary" disabled>Usar modelo</button>
+    </div>
+  </dialog>
+  <p id="status" role="status" aria-live="polite">Selecione a origem da aplicação ou configure as fontes.</p>
+  <nav class="manual-links" aria-label="Manuais do DepTriagem">
+    <span>Manuais</span><button id="manual-usage">Uso</button><button id="manual-integration">Integra&ccedil;&otilde;es</button><button id="manual-diagnostics">Diagn&oacute;stico</button>
+  </nav>
+</footer>
+<script src="renderer.js" defer></script>
+</body>
+</html>

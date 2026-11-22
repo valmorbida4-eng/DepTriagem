@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Manual de diagnóstico e manutenção · DepTriagem</title><link rel="stylesheet" href="estilo.css"></head>
+<body>
+<header>
+<nav aria-label="Manuais"><a href="usuario.html">Manual do usuário</a> <a href="integracoes.html">Manual de integrações</a> <a href="manutencao.html" aria-current="page">Manual de diagnóstico e manutenção</a></nav>
+<p class="theme"><label for="theme">Tema</label> <select id="theme"><option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Escuro</option></select></p>
+<h1>Manual de diagnóstico e manutenção</h1><p>Guia de manutenção do DepTriagem</p>
+</header>
+<main><h2>Catálogos e GitHub</h2><p>Confira as duas datas por fonte em Configurações. Se um download falhar, a cópia válida anterior continua disponível. A autenticação usa o GitHub CLI. Confira a conta antes de selecionar um projeto privado.</p><h2>Instalação e remoção</h2><p>No Windows use o instalador NSIS. No Linux use AppImage, DEB ou RPM. No macOS abra o DMG e arraste o aplicativo para Aplicativos. Ao remover, encerre o DepTriagem, inclusive o monitor na bandeja do Windows, e remova pelo sistema ou apague a AppImage. Os dados do perfil ficam separados.</p><h2>Atualizações</h2><p>Em Configurações → Atualizações, consulte as releases e confira as notas. O aplicativo valida SHA-256. A instalação integrada está disponível no Windows. No Linux, escolha DEB ou RPM na página da release se esse for o formato instalado. No macOS e para AppImage, abra o pacote verificado e substitua a versão anterior.</p><h2>Diagnóstico</h2><p>Use Copiar diagnóstico em Configurações → Preferências para obter as versões e as datas dos catálogos. O texto não contém chaves, caminhos ou dados de projetos.</p><p>Em <code>decider_unavailable</code>, confira modelo e porta no Launcher. Se o chat retornar HTTP 401, confira a variável de token no processo. Os erros de parecer saem em stderr com o identificador contido no JSON.</p><h2>Gerar o instalador</h2><p>Na raiz do projeto, execute <code>npm run dist:win</code>, <code>npm run dist:linux</code> ou <code>npm run dist:mac</code> no sistema correspondente. O instalador inclui o runtime do Electron. Anexe o instalador e seu arquivo SHA-256 à release estável para disponibilizá-la no atualizador.</p></main>
+<script>document.querySelector("#theme").addEventListener("change", event => { document.documentElement.dataset.theme = event.target.value; });</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+# Normalização de finais de linha: LF no repositório
+* text=auto eol=lf
+
+# Scripts Windows mantêm CRLF
+*.ps1  text eol=crlf
+*.psm1 text eol=crlf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.sln  text eol=crlf
+
+# Código e configuração
+*.cs      text diff=csharp
+*.csproj  text
+*.py      text diff=python
+*.ts      text
+*.vue     text
+*.json    text
+*.md      text diff=markdown
+*.yml     text
+*.yaml    text
+*.toml    text
+*.sql     text
+Dockerfile text
+*.sh      text eol=lf
+
+# Lockfiles: sem diff ruidoso, merge pela versão gerada
+uv.lock           -diff linguist-generated
+package-lock.json -diff linguist-generated
+pnpm-lock.yaml    -diff linguist-generated
+
+# Binários
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
+*.zip  binary
+*.gz   binary
+*.xlsx binary
+*.docx binary
+*.pptx binary
+*.woff binary
+*.woff2 binary
+*.dll  binary
+*.exe  binary
+
+# Notebooks: diff como texto, contados como documentação
+*.ipynb text linguist-documentation
+
+# Documentação versionada, excluída da estatística de linguagens do GitHub
+docs/** linguist-documentation=true linguist-detectable=false
+docs/manuais/gerados/** linguist-generated=true

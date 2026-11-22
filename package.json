@@ -1,0 +1,84 @@
+{
+  "name": "deptriagem-desktop",
+  "version": "0.12.4",
+  "private": true,
+  "description": "DepTriagem desktop para triagem local e revisão de dependências",
+  "author": "valmorbida4-eng <279383975+valmorbida4-eng@users.noreply.github.com>",
+  "license": "MIT",
+  "main": "build/electron/main.js",
+  "scripts": {
+    "build": "node desktop/build.cjs",
+    "start": "npm run build && electron .",
+    "test": "npm run build && node --test desktop/tests/*.test.cjs",
+    "smoke:ui": "npm run build && electron desktop/smoke.cjs",
+    "cli": "node build/electron/cli.js",
+    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never && node desktop/checksum.cjs",
+    "dist:linux": "npm run build && electron-builder --linux AppImage deb rpm --publish never && node desktop/checksum.cjs",
+    "dist:mac": "npm run build && electron-builder --mac dmg --publish never && node desktop/checksum.cjs"
+  },
+  "devDependencies": {
+    "electron": "45.4.1",
+    "electron-builder": "26.18.0",
+    "typescript": "7.0.2"
+  },
+  "build": {
+    "appId": "io.github.valmorbida4-eng.deptriagem",
+    "productName": "DepTriagem",
+    "asar": true,
+    "afterPack": "desktop/after-pack.cjs",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/electron/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop/deptriagem.cmd",
+        "to": "deptriagem.cmd"
+      },
+      {
+        "from": "desktop/deptriagem.sh",
+        "to": "deptriagem.sh"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "runAfterFinish": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "DepTriagem-Setup-${version}-win-${arch}.${ext}",
+      "include": "desktop/installer.nsh"
+    },
+    "linux": {
+      "category": "Utility",
+      "maintainer": "valmorbida4-eng <279383975+valmorbida4-eng@users.noreply.github.com>",
+      "executableName": "deptriagem",
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "artifactName": "DepTriagem-${version}-linux-${arch}.${ext}"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities",
+      "identity": null,
+      "artifactName": "DepTriagem-${version}-mac-${arch}.${ext}"
+    }
+  },
+  "homepage": "https://github.com/valmorbida4-eng/DepTriagem",
+  "overrides": {
+    "minimatch@>=7.0.0 <11.0.1": "^11.0.9"
+  }
+}

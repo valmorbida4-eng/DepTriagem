@@ -1,0 +1,11 @@
+html { color-scheme: light dark; }
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+body { font: 1rem/1.65 system-ui, sans-serif; margin: 2rem auto; max-width: 68ch; padding: 0 1rem; }
+nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+pre { border: 1px solid; overflow: auto; padding: .75rem; }
+@media print {
+  html { color-scheme: light !important; }
+  nav, .theme { display: none; }
+  body { max-width: none; margin: 0; }
+}
