@@ -8,7 +8,7 @@ TypeScript puro. O pacote não declara dependências npm de produção.
 
 | Sistema | Pacote | Arquitetura |
 | --- | --- | --- |
-| Windows | `DepTriagem-Setup-0.12.4-win-x64.exe` | x64 |
+| Windows | `DepTriagem-Setup-0.12.5-win-x64.exe` | x64 |
 | Linux | AppImage, DEB ou RPM | x64 e ARM64 |
 | macOS | DMG | Intel e Apple Silicon |
 

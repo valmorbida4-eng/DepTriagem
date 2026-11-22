@@ -7,6 +7,9 @@ const path = require("node:path");
 const {app, BrowserWindow, clipboard, dialog, ipcMain} = require("electron");
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), "deptriagem-smoke-"));
 process.env.DEPTRIAGEM_DATA_DIR = directory;
+process.env.GH_CONFIG_DIR = path.join(directory, "gh");
+delete process.env.GH_TOKEN;
+delete process.env.GITHUB_TOKEN;
 fs.writeFileSync(path.join(directory, "settings.json"), JSON.stringify({update_check: false, theme: "dark", models: {
   agent: {provider: "codex", model: "example-codex", effort: "high"},
   reviewer: {provider: "gemini", model: "example-gemini", effort: "low"},
@@ -56,6 +59,34 @@ require("../build/electron/main.js");
         model_decision: input.decider && {queue: "priority_review", reason: "model_suggestion"}}};
     });
     const execute = script => window.webContents.executeJavaScript(script);
+    const githubBadges = () => execute(`["source-account", "github-account", "mcp-account"].map(id => {
+      const badge = document.getElementById(id);
+      return [badge.dataset.state, badge.textContent, getComputedStyle(badge).backgroundColor];
+    })`);
+    async function expectGithubBadge(state, text, color) {
+      const expected = Array.from({length: 3}, () => [state, text, color]);
+      for (let attempt = 0; attempt < 100; attempt++) {
+        const badges = await githubBadges();
+        if (JSON.stringify(badges) === JSON.stringify(expected)) return;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      assert.deepEqual(await githubBadges(), expected);
+    }
+    await expectGithubBadge("disconnected", "Conta não conectada", "rgb(14, 25, 30)");
+    ipcMain.removeHandler("github:configured");
+    ipcMain.handle("github:configured", () => ({ok: true, data: true}));
+    ipcMain.removeHandler("github:account");
+    let githubAvailable = false;
+    ipcMain.handle("github:account", () => githubAvailable ? {ok: true, data: "conta-ficticia"}
+      : {ok: false, message: "GitHub indisponível."});
+    await execute(`document.querySelector('#github-check').click();`);
+    await expectGithubBadge("unverified", "Conta ainda não verificada", "rgb(70, 55, 25)");
+    for (let attempt = 0; attempt < 100 && await execute("document.querySelector('#github-check').disabled"); attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    githubAvailable = true;
+    await execute(`document.querySelector('#github-check').click();`);
+    await expectGithubBadge("verified", "GitHub · conta-ficticia", "rgb(33, 57, 47)");
     const picks = await execute(`(() => {
       const selection = document.querySelector('#project-agent-provider');
       const reviewSelection = document.querySelector('#project-reviewer-provider');

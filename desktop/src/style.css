@@ -74,7 +74,10 @@ th { color: var(--muted); }
 progress { display: block; width: 100%; height: 8px; margin-top: 12px; accent-color: var(--mint); }
 footer p { border-top: 1px solid var(--line); padding-top: 8px; color: var(--muted); font-size: 12px; margin: 0 0 15px; }
 [data-error="true"] { color: var(--danger-text); }
-.badge[data-state="stopped"] { color: var(--warning-text); background: var(--warning); border-color: var(--warning-text); }
+.badge[data-state="disconnected"] { color: var(--muted); background: var(--field); }
+.badge[data-state="stopped"], .badge[data-state="unverified"] {
+  color: var(--warning-text); background: var(--warning); border-color: var(--warning-text);
+}
 .badge[data-error="true"] { background: var(--danger); border-color: var(--danger-text); }
 @media (max-width: 900px) {
   .model-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
