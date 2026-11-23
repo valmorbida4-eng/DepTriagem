@@ -1,5 +1,9 @@
 # Histórico de versões
 
+## 0.12.5
+
+- Distingue conta GitHub desconectada, pendente de verificação e verificada em Configurações, Análise e Integrações MCP.
+
 ## 0.12.4
 
 - Preserva nomes Unicode distintos ao aplicar regras do Git e identificar lacunas de arquivos ausentes no Windows.

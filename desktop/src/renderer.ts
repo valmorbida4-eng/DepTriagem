@@ -509,24 +509,62 @@ field("source-kind").addEventListener("change", () => {
   field("source-local").hidden = github;
   field("source-github").hidden = !github;
 });
-function showAccount(login: string) {
-  setText("source-account", "GitHub · " + login);
-  setText("github-account", "GitHub · " + login);
-  setText("mcp-account", "GitHub · " + login);
+let githubAccountRequest = 0;
+let githubLoginPending = false;
+function showAccount(state: "disconnected" | "unverified" | "verified", login?: string) {
+  const text = state === "verified" ? "GitHub · " + login
+    : state === "unverified" ? "Conta ainda não verificada" : "Conta não conectada";
+  for (const id of ["source-account", "github-account", "mcp-account"]) {
+    field(id).dataset.state = state;
+    setText(id, text);
+  }
+  if (state === "verified") githubLoginPending = false;
+}
+async function refreshGithubAccount(verify = false) {
+  const request = ++githubAccountRequest;
+  showAccount("unverified");
+  const configured = await invoke<boolean>("github:configured");
+  if (githubAccountRequest !== request) return;
+  if (!configured) {
+    showAccount("disconnected");
+    if (verify) setStatus("Conta não conectada. Conecte a conta do GitHub para verificar.");
+    return;
+  }
+  if (verify) {
+    const login = await invoke<string>("github:account");
+    if (githubAccountRequest !== request) return;
+    showAccount("verified", login);
+    setStatus("Conta GitHub conectada.");
+  }
+}
+async function githubRepositories() {
+  const request = ++githubAccountRequest;
+  try {
+    const result = await invoke<{login: string; repos: string[]}>("github:repositories");
+    if (request === githubAccountRequest) showAccount("verified", result.login);
+    return result;
+  } catch (error) {
+    if (request === githubAccountRequest) await refreshGithubAccount();
+    throw error;
+  }
 }
 async function listRepositories() {
   setStatus("Consultando repositórios da conta…");
-  const result = await invoke<{login: string; repos: string[]}>("github:repositories");
-  showAccount(result.login);
+  const result = await githubRepositories();
   field("repositories").replaceChildren(...result.repos.map(name => new Option(name, name)));
   setStatus("Selecione um repositório ou informe dono/nome.");
 }
 act("repo-list", listRepositories);
 act("mcp-repo-list", listRepositories);
-act("github-check", async () => { showAccount(await invoke<string>("github:account")); setStatus("Conta GitHub conectada."); });
+act("github-check", () => refreshGithubAccount(true));
 act("github-login", async () => {
   await invoke("github:login");
+  githubLoginPending = true;
+  await refreshGithubAccount();
   setStatus("Conclua a autenticação do GitHub CLI e clique em Verificar conta.");
+});
+window.addEventListener("focus", () => {
+  if (githubLoginPending) void refreshGithubAccount().catch(error => setStatus(error.message, true));
 });
 
 function projectSource() {
@@ -1233,7 +1271,7 @@ function displayMonitor(state: MonitorStatus, reset = false) {
 }
 async function refreshMonitor() { displayMonitor(await invoke<MonitorStatus>("monitor:status")); }
 act("monitor-load", async () => {
-  const result = await invoke<{login: string; repos: string[]}>("github:repositories");
+  const result = await githubRepositories();
   knownRepos = result.repos;
   setText("monitor-account", "GitHub \u00b7 " + result.login);
   renderRepos();
@@ -1427,7 +1465,8 @@ async function initialize() {
   refreshTriageSelection(true);
   field<HTMLInputElement>("automatic-update").checked = state.settings.update_check !== false;
   applyTheme(); showPage("projects"); repaintControls();
-  await Promise.all([loadCatalogs(), showLastInstall(), invoke<TokenStatus>("launcher:token-status").then(showTokenStatus)]);
+  await Promise.all([loadCatalogs(), showLastInstall(), invoke<TokenStatus>("launcher:token-status").then(showTokenStatus),
+    refreshGithubAccount()]);
   if (checked("automatic-update")) void checkUpdate();
   setInterval(() => { if (checked("automatic-update")) void checkUpdate(); }, 86400000);
 }

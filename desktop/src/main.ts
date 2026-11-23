@@ -11,7 +11,7 @@ import {exportAnalysis} from "./reports";
 import {catalogStatus, installScanner, scanner, syncCatalogs} from "./catalogs";
 import {control, deciderConfig, health, localModels, reviewerChat, roles, watchLauncher, type Role, type Chat} from "./launcher";
 import {credentialStatus, decideAnalysis, deciderProvider, listModels, modelConfig, modelEfforts, modelListings, modelPlan, setCredential, testModel, triageWithModel, type Provider} from "./models";
-import {atomicJson, dataDir, json, message, port, resolveExecutable, saveSettings, settings, version, type Settings} from "./system";
+import {atomicJson, dataDir, json, message, port, resolveExecutable, run, saveSettings, settings, version, type Settings} from "./system";
 import {monitorReport, monitorStatus, runMonitor, saveMonitor} from "./monitor";
 import type {MonitorRun} from "./monitor-types";
 import {checkUpdate, fetchUpdate, lastInstall, launchVerifiedUpdate, repository, type Update} from "./updates";
@@ -300,6 +300,12 @@ function handlers() {
       const choice = await dialog.showSaveDialog(window, {title: "Nome da pasta da exportação",
         defaultPath: join(root, "deptriagem-" + stamp), buttonLabel: "Exportar"});
       return choice.canceled || !choice.filePath ? null : exportAnalysis(choice.filePath, report);
+    },
+    "github:configured": async () => {
+      if (process.env.GH_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim()) return true;
+      const result = await run("gh", ["config", "get", "user", "--host", "github.com"], {timeout: 5000})
+        .catch(() => null);
+      return result?.code === 0 && Boolean(result.output.toString().trim());
     },
     "github:account": () => account(),
     "github:repositories": () => repositories(),

@@ -7,7 +7,7 @@ const channels = new Set([
   "model:credentials", "model:credential", "model:test", "model:list",
   "launcher:reviewer-models",
   "mcp:destination", "mcp:preview", "mcp:copy", "mcp:test", "mcp:open-location", "mcp:connection",
-  "github:account", "github:repositories", "github:login", "project:analyze", "project:review",
+  "github:configured", "github:account", "github:repositories", "github:login", "project:analyze", "project:review",
   "catalog:status", "catalog:sync", "catalog:scanner", "catalog:install", "launcher:open",
   "launcher:control", "launcher:watch", "launcher:token-status", "launcher:remember-token", "launcher:forget-token", "launcher:health",
   "triage:run", "triage:test", "triage:models", "update:check", "update:download",

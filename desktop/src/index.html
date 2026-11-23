@@ -45,7 +45,7 @@
         <label class="line">Commit Git local<input id="project-commit" placeholder="Commit, tag ou branch. Se vazio, usa a pasta atual." spellcheck="false"></label>
       </div>
       <div id="source-github" hidden>
-        <div class="section-head line"><span id="source-account" class="badge">Conta GitHub ainda não verificada</span><button id="repo-list">Listar repositórios</button></div>
+        <div class="section-head line"><span id="source-account" class="badge" data-state="unverified" role="status">Conta ainda não verificada</span><button id="repo-list">Listar repositórios</button></div>
         <div class="columns">
           <label>Repositório<input id="project-repo" list="repositories" placeholder="dono/repositório" spellcheck="false"></label>
           <label>Branch, tag ou commit<input id="project-ref" placeholder="Branch padrão se vazio" spellcheck="false"></label>
@@ -316,7 +316,7 @@
         <label class="line">Commit Git local<input id="mcp-commit" placeholder="Opcional" spellcheck="false"></label>
       </div>
       <div id="mcp-github" hidden>
-        <div class="actions"><span id="mcp-account" class="badge">Conta GitHub ainda não verificada</span><button id="mcp-repo-list">Listar repositórios</button></div>
+        <div class="actions"><span id="mcp-account" class="badge" data-state="unverified" role="status">Conta ainda não verificada</span><button id="mcp-repo-list">Listar repositórios</button></div>
         <div class="columns">
           <label>Repositório<input id="mcp-repo" list="repositories" placeholder="dono/repositório" spellcheck="false"></label>
           <label>Branch, tag ou commit<input id="mcp-ref" placeholder="Branch padrão se vazio" spellcheck="false"></label>
@@ -379,7 +379,7 @@
       <div class="actions"><button id="sync-all" class="primary">Atualizar OSV e CISA KEV</button><select id="catalog-source" aria-label="Fonte a atualizar"><option value="npm">OSV · npm</option><option value="PyPI">OSV · PyPI</option><option value="NuGet">OSV · NuGet</option><option value="KEV">CISA KEV</option></select><button id="sync-one">Atualizar selecionado</button><button id="reload-catalogs">Recarregar datas</button></div>
     </section>
     <section class="card">
-      <div class="section-head"><h2>Conta do GitHub</h2><span class="badge" id="github-account">Conta ainda não verificada</span></div>
+      <div class="section-head"><h2>Conta do GitHub</h2><span id="github-account" class="badge" data-state="unverified" role="status">Conta ainda não verificada</span></div>
       <div class="actions"><button id="github-login">Conectar conta…</button><button id="github-check">Verificar conta</button></div>
     </section>
   </section>
