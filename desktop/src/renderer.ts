@@ -164,10 +164,20 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-pick]")
   });
 }
 
+const themeModes: Theme[] = ["system", "light", "dark"];
+const themeLabels = {system: "Sistema", light: "Claro", dark: "Escuro"};
+const themeIcons = {system: "◐", light: "☀", dark: "☾"};
 let dark = true, theme: Theme = "system";
-function applyTheme() { document.documentElement.dataset.theme = theme === "system" ? (dark ? "dark" : "light") : theme; }
-field<HTMLSelectElement>("theme").addEventListener("change", () => {
-  theme = value("theme") as Theme;
+function applyTheme() {
+  document.documentElement.dataset.theme = theme === "system" ? (dark ? "dark" : "light") : theme;
+  setText("theme-icon", themeIcons[theme]);
+  setText("theme-label", themeLabels[theme]);
+  const button = field("theme-toggle");
+  button.title = `Tema: ${themeLabels[theme]}. Clique para trocar.`;
+  button.setAttribute("aria-label", `Tema da interface. ${themeLabels[theme]}. Pressione para trocar.`);
+}
+field("theme-toggle").addEventListener("click", () => {
+  theme = themeModes[(themeModes.indexOf(theme) + 1) % themeModes.length];
   applyTheme();
   void invoke("app:settings", {theme}).catch(error => setStatus(error.message, true));
 });
@@ -1441,8 +1451,7 @@ async function initialize() {
   availableKeys = await invoke("model:credentials");
   refreshModels();
   theme = ({Sistema: "system", Claro: "light", Escuro: "dark"} as Record<string, Theme>)[state.settings.theme || ""] ||
-    (state.settings.theme as Theme) || "system";
-  field<HTMLSelectElement>("theme").value = theme;
+    themeModes.find(mode => mode === state.settings.theme) || "system";
   field<HTMLInputElement>("catalog-path").value = state.settings.catalog_dir || "";
   field<HTMLInputElement>("scanner-path").value = state.settings.scanner || "";
   field<HTMLInputElement>("reports-path").value = state.settings.reports_dir || "";
@@ -1464,7 +1473,7 @@ async function initialize() {
   if (decider?.effort) showDeciderEfforts(decider.model, decider.effort);
   refreshTriageSelection(true);
   field<HTMLInputElement>("automatic-update").checked = state.settings.update_check !== false;
-  applyTheme(); showPage("projects"); repaintControls();
+  applyTheme(); field<HTMLButtonElement>("theme-toggle").disabled = false; showPage("projects"); repaintControls();
   await Promise.all([loadCatalogs(), showLastInstall(), invoke<TokenStatus>("launcher:token-status").then(showTokenStatus),
     refreshGithubAccount()]);
   if (checked("automatic-update")) void checkUpdate();

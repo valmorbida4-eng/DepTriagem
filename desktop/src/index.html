@@ -17,6 +17,9 @@
       <button class="nav" data-group="settings">Configurações</button>
     </nav>
     <button class="badge available" id="update-badge" data-page="updates" hidden>Nova versão disponível</button>
+    <button id="theme-toggle" class="theme-toggle" type="button" disabled aria-label="Tema da interface. Sistema. Clique para trocar.">
+      <span id="theme-icon" aria-hidden="true">◐</span> <span id="theme-label">Sistema</span>
+    </button>
   </div>
 </header>
 <main>
@@ -348,12 +351,6 @@
 
   <section id="page-preferences" class="view" hidden>
     <div class="view-heading"><h1>Prefer&ecirc;ncias</h1></div>
-    <section class="card">
-      <div class="section-head">
-        <h2>Apar&ecirc;ncia</h2>
-        <label class="theme"><span aria-hidden="true">&#9680;</span><select id="theme" aria-label="Tema"><option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
-      </div>
-    </section>
     <section class="card">
       <div class="section-head"><h2>Diagn&oacute;stico</h2><button id="copy-diagnostics">Copiar diagn&oacute;stico</button></div>
       <p class="muted">Inclui as vers&otilde;es e datas dos cat&aacute;logos.</p>

@@ -8,7 +8,7 @@ TypeScript puro. O pacote não declara dependências npm de produção.
 
 | Sistema | Pacote | Arquitetura |
 | --- | --- | --- |
-| Windows | `DepTriagem-Setup-0.12.5-win-x64.exe` | x64 |
+| Windows | `DepTriagem-Setup-0.12.6-win-x64.exe` | x64 |
 | Linux | AppImage, DEB ou RPM | x64 e ARM64 |
 | macOS | DMG | Intel e Apple Silicon |
 
@@ -58,8 +58,9 @@ janela e funcionam offline. Em **Configurações → Preferências**, use
 - **Análise → Triagem de relatos:** escolha o Decisor salvo em Configurações
   ou o Decisor do Launcher. Quando o provedor é externo, autorize o envio de
   cada relato na tela de triagem.
-- **Configurações → Preferências:** escolha o tema e a pasta padrão
-  apresentada ao salvar relatórios JSON pela interface.
+- **Menu superior:** clique no botão de tema para alternar entre Sistema,
+  Claro e Escuro. Em **Configurações → Preferências**, escolha a pasta
+  padrão apresentada ao salvar relatórios JSON pela interface.
 - **Configurações → Fontes e ferramentas:** instale ou selecione o
   OSV-Scanner, atualize os catálogos OSV de npm, PyPI e NuGet e o CISA KEV,
   e verifique a conta no GitHub CLI. Cada fonte mostra a data de
