@@ -24,14 +24,12 @@ body { margin: 0; color: var(--text); background: var(--bg); }
 .brand-mark { color: var(--selected-text); font-size: 30px; }
 .brand strong, .brand small { display: block; white-space: nowrap; }
 .brand small { color: var(--muted); font-size: 11px; }
-.theme { position: relative; display: inline-flex; align-items: center; font-size: 13px; }
-.theme span { position: absolute; left: 10px; pointer-events: none; color: var(--muted); }
-.theme select { width: auto; margin: 0; padding: 6px 10px 6px 26px; }
 nav, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
 button, select, input, textarea { font: inherit; }
 button { padding: 8px 12px; color: var(--text); background: var(--secondary); border: 1px solid var(--field-line); border-radius: 8px; cursor: pointer; }
 button:hover:not(:disabled) { filter: brightness(1.14); }
 button:disabled { opacity: .48; cursor: default; }
+.theme-toggle { flex-shrink: 0; padding: 7px 12px; background: transparent; color: var(--muted); font-size: 13px; white-space: nowrap; }
 .nav { background: transparent; border-color: transparent; color: var(--muted); font-size: 13px; }
 .nav[aria-current=page] { background: var(--selected); color: var(--selected-text); font-weight: 650; }
 .primary { color: var(--mint-text); background: var(--mint); border-color: transparent; font-weight: 700; }

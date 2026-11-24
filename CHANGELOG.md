@@ -1,5 +1,9 @@
 # Histórico de versões
 
+## 0.12.6
+
+- Move o botão de tema para o menu superior, com alternância entre Sistema, Claro e Escuro.
+
 ## 0.12.5
 
 - Distingue conta GitHub desconectada, pendente de verificação e verificada em Configurações, Análise e Integrações MCP.
